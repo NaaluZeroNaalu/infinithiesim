@@ -1,0 +1,23 @@
+
+#logo{
+    color: white;
+}
+
+.faq button, div{
+
+    color: white;
+}
+
+
+#steps{
+
+    text-align: center;
+}
+
+#steps #step{
+
+    border: 1px solid white;
+    height: 300px;
+    width: 500px;
+    border-radius: 10px;
+}
