@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Upload and Speech Recognition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .navbar {
+            background-color: #ffffff;
+        }
+
+
+        .container {
+            margin-top: 50px;
+        }
+        .search-input {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .tab {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            margin-bottom: 1rem;
+        }
+
+        .tab button {
+            background-color: #f1f1f1;
+            border: none;
+            padding: 14px 20px;
+            cursor: pointer;
+            width: 30%;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+            color: #333;
+            margin: 5px 0;
+        }
+
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        .tab button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            color: black;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+        }
+
+        .video-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        .video-card video {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .video-card img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .video-card p {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .video-card button {
+            margin-top: 10px;
+        }
+
+        .input-group button {
+            border-radius: 50px;
+        }
+
+        .btn {
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .tab button {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .video-card {
+                padding: 10px;
+            }
+
+            .video-card video {
+                width: 100%;
+                height: auto;
+            }
+        }
+
+        .highlight {
+            background-color: yellow; /* Highlight color */
+            font-weight: bold;
+        }
+
+        /*----------------------uploading animation-------------------*/
+        /* HTML: <div class="loader"></div> */
+.loader {
+  width: 90px;
+  height: 14px;
+  background: repeating-linear-gradient(90deg,#000 0 calc(25% - 5px),#0000 0 25%) left/calc(4*100%/10) 100%;
+  animation: l1 2s infinite linear;
+}
+@keyframes l1 {
+    100% {background-position: right}
+}
+ 
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/" id="logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+            </a>
+            <ul class="nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn" href="#" >
+                        
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="text-center my-5">Upload a Video</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="file" class="form-label">Choose a video file:</label>
+                <input type="file" class="form-control" id="file" name="file" accept="video/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary" onclick="Loadingeffect()" id="uploadbutton">Upload Video</button>
+
+            <h1 class="text-center" id="uploading"></h1>
+            <div id="loader" style="width: 100%;"></div>
+
+            <script>
+                function Loadingeffect() {
+                    document.getElementById("uploading").innerHTML = "Uploading";
+                    document.getElementById("loader").className = "loader";
+                }
+            </script>
+        </form>
+
+        <hr>
+
+        
+        <div class="mb-3">
+            <label for="searchInput" class="form-label">Search:</label>
+            <input type="text" id="searchInput" class="form-control" placeholder="Search a video..." >
+            <button class="btn btn-primary" onclick="Sematic_search()">search</button>
+            <br><br>
+            <div class="progress" style="background: linear-gradient(135deg, #4e54c8, #4e54c8);height:20px">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"  id="searchloader">
+                    
+                </div>
+            </div>
+            
+            <!-- <input type="text" id="searchInput" class="form-control" placeholder="Search a video..." onkeyup="filterVideos()"> -->
+        </div>
+        
+        <h1 class="text-center my-5">YOUR VIDEOS</h1>
+        <div class="container">
+            {% for video in videos %}
+                <div class="video-card row" id="video{{loop.index}}">
+                    <div class="col-lg-4 text-center">
+                        <video id="video{{video['vidno']}}" controls >
+                            <source src="data:video/mp4;base64,{{ video['video'] }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div id="videotitle">
+                            <p style="color: black;">{{ video["title"] }}</p>
+                            <form action="{{ url_for('remove_videos') }}" method="POST">
+                                <input type="hidden" value="{{ video['vidno'] }}" name="idno">
+                                <button type="submit" class="btn btn-primary">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-8" id="tabcontents">
+                        <div class="tab">
+                            <button class="tablinks" onclick="openTab(event, 'Categories', {{ loop.index }})">Categories</button>
+                            <button class="tablinks" onclick="openTab(event, 'Transcript', {{ loop.index }})">Transcript</button>
+                            <button class="tablinks" onclick="openTab(event, 'Summary', {{ loop.index }})">Summary</button>
+                        </div>
+
+                        <div id="Categories{{ loop.index }}" class="tabcontent">
+                            <h3>Categories</h3>
+                            {% for time in video['categories'] %}
+                                {% if time['title'] %}
+                                    <button class="btn btn-primary" onclick="Playvideo('{{ time['time'] }}','{{video['vidno']}}')">{{ time['time'] }}</button>
+                                    <p id="categories{{ loop.index }}">{{ time['title']}}</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+    
+                        <div id="Transcript{{ loop.index }}" class="tabcontent">
+                            <h3>Transcript</h3>
+                            <p id="transcript{{ loop.index }}">{{ video['transcript'] }}</p>
+                        </div>
+    
+                        <div id="Summary{{ loop.index }}" class="tabcontent">
+                            <h3>Summary</h3>
+                            {% if video['summary'] == 'token_quota_reached' %}
+                                <p>you reached your token limit</p>
+                            {% else %}
+                                <p id="summary-text{{ loop.index }}">{{ video['summary'] }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p>&copy; 2024 Your Company. All rights reserved.</p>
+            <div>
+                <a href="#" class="text-white me-3">Privacy Policy</a>
+                <a href="#" class="text-white me-3">Terms of Service</a>
+                <a href="#" class="text-white">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+       
+        function openTab(evt, tabName, index) {
+            var i, tabcontent, tablinks;
+
+            tabcontent = document.querySelectorAll("#video" + index + " .tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            tablinks = document.querySelectorAll("#video" + index + " .tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName + index).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        window.onload = function() {
+            var videos = document.querySelectorAll('.video-card');
+            videos.forEach((video, index) => {
+                var firstTab = video.querySelector(".tablinks");
+                if (firstTab) {
+                    firstTab.classList.add('active');
+                    var firstTabContent = video.querySelector(".tabcontent");
+                    if (firstTabContent) {
+                        firstTabContent.style.display = 'block';
+                    }
+                }
+            });
+        };
+
+       
+        let words = []
+        function Sematic_search(){
+            document.getElementById("searchloader").style.width = "100%"
+            document.getElementById("searchloader").innerText = "searching..."
+            $.ajax({
+            url:'http://127.0.0.1:5000/semantic',
+            method:'POST',
+            data:{
+                searchinput:$("#searchInput").val(),
+            },
+            success:function(response){
+                document.getElementById("searchloader").style.width = "0%"
+                response.map((val)=>{
+
+                    // console.log(val.transcript.split(","))
+                    for(i of val.transcript.split(",")){
+
+                        words.push(i)
+                        // console.log(i)
+                    }
+                })
+                console.log(response)
+                console.log(words)
+                filterVideos(words)
+            },
+            error:function (err) {
+                console.log(err)
+            }
+     })
+
+
+}
+
+
+        function Playvideo(time, no) {
+            const timeParts = time.split(':');
+            let timeInSeconds = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+
+            const video = document.getElementById('video'+no);
+            // console.log('video'+no)
+            video.currentTime = timeInSeconds;
+            video.play();
+        }
+
+        //radha -->
+    
+function filterVideos(words) {
+    const videoCards = document.querySelectorAll(".video-card");
+
+    // Remove previous highlights
+    document.querySelectorAll('.highlight').forEach(span => span.classList.remove('highlight'));
+
+    videoCards.forEach((videoCard) => {
+        const summaryElem = videoCard.querySelector(".tabcontent #summary-text" + videoCard.id.replace('video', ''));
+        const transcriptElem = videoCard.querySelector(".tabcontent #transcript" + videoCard.id.replace('video', ''));
+        const categoryElems = videoCard.querySelectorAll(".tabcontent p[id^='categories']");
+
+        if (!summaryElem || !transcriptElem || categoryElems.length === 0) {
+            console.log("Missing elements for video card", videoCard.id);
+            return;
+        }
+
+        const summaryText = summaryElem.innerText.toLowerCase();
+        const transcriptText = transcriptElem.innerText.toLowerCase();
+        const categoryTexts = Array.from(categoryElems).map(categoryElem => categoryElem.innerText.toLowerCase());
+
+        function highlightText(text, container) {
+            let newText = text;
+            let highlightMade = false;
+
+            words.forEach(word => {
+                if (word && text.includes(word)) {
+                    const regex = new RegExp(`(${word})`, 'gi');
+                    newText = newText.replace(regex, '<span class="highlight">$1</span>');
+                    highlightMade = true;
+                }
+            });
+
+            // Only update the content if we actually highlighted something
+            if (highlightMade) {
+                container.innerHTML = newText;
+            }
+            return highlightMade;
+        }
+
+        let matches = false;
+
+        // Check summary and highlight if needed
+        if (summaryText && highlightText(summaryText, summaryElem)) {
+            matches = true;
+        }
+
+        // Check transcript and highlight if needed
+        if (transcriptText && highlightText(transcriptText, transcriptElem)) {
+            matches = true;
+        }
+
+        // Check categories and highlight if needed
+        categoryElems.forEach(categoryElem => {
+            const categoryText = categoryElem.innerText.toLowerCase();
+            if (categoryText && highlightText(categoryText, categoryElem)) {
+                matches = true;
+            }
+        });
+
+        // Show or hide the video card based on whether any match was found
+        if (matches) {
+            videoCard.style.display = ""; // Show the video card
+        } else {
+            videoCard.style.display = "none"; // Hide the video card
+        }
+    });
+}
+
+    </script>
+</body>
+</html>

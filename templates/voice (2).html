@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+</head>
+<body>
+
+<script>
+window.sessionStorage.setItem("trigger","no")
+
+function customButtonClick() {
+    
+    alert("yes")
+    var output = document.getElementById('output');
+    var action = document.getElementById('action');
+    let recognization = new webkitSpeechRecognition();
+    recognization.onstart = () => {
+        console.log("Listening")
+}
+recognization.onresult = (e) => {
+var transcript = e.results[0][0].transcript;
+console.log(transcript);
+window.sessionStorage.setItem("message",transcript)
+window.sessionStorage.setItem("trigger","yes")
+
+}
+window.sessionStorage.setItem("trigger","no")
+recognization.start();
+
+}
+
+window.watsonAssistantChatOptions = {
+integrationID: "aede091c-6669-413f-be7f-2450d74e6abb", // The ID of this integration.
+    region: "au-syd", // The region your integration is hosted in.
+    serviceInstanceID: "e3913d7a-2829-42ce-99bf-8934e9364537", // The ID of your service instance.
+
+onLoad: async (instance) => {
+await instance.render();
+// instance.send("hello").catch(console.error);
+
+
+setInterval(()=>{
+
+let trigger = window.sessionStorage.getItem("trigger")
+if(trigger === "yes"){
+
+instance.send(window.sessionStorage.getItem("message"))
+console.log("message sended"+window.sessionStorage.getItem("message"))
+window.sessionStorage.setItem("trigger","no")
+
+}
+},100)
+
+// Inject the custom button into the Watson Assistant input container
+
+instance.writeableElements.beforeInputElement.innerHTML =
+`<div style='position:absolute;z-index:3;left:290px;padding-top:15px;'>
+<img style='height:25px' onclick="customButtonClick()" src="https://img.icons8.com/ios/50/microphone.png" alt="microphone"/>
+</div>`
+
+
+
+}
+};
+
+
+
+setTimeout(function () {
+const t = document.createElement('script');
+t.src =
+"https://web-chat.global.assistant.watson.appdomain.cloud/versions/" +
+(window.watsonAssistantChatOptions.clientVersion || 'latest') +
+"/WatsonAssistantChatEntry.js";
+document.head.appendChild(t);
+});
+</script>
+
+</body>
+</html>
